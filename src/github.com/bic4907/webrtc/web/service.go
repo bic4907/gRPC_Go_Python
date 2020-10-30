@@ -1,13 +1,18 @@
 package web
 
 import (
+	"context"
 	"fmt"
+	"google.golang.org/grpc"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/bic4907/webrtc/wrtc"
+
+	pb "github.com/bic4907/webrtc/protobuf"
 )
 
 func StartWebService() {
@@ -39,13 +44,34 @@ func StartWebService() {
 
 }
 
+const (
+	address = "127.0.0.1:10002"
+)
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadFile("index.html")
 
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		fmt.Println("did not connect: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	c := pb.NewGreeterClient(conn)
+	resp, err := c.SayHello(ctx, &pb.HelloRequest{Name: "HI"})
+	if err != nil {
+		fmt.Printf("could not greet: %v\n", err)
+	}
+	fmt.Printf("Greeting: %s\n", resp.GetMessage())
+
 	w.Write(data)
+
 }
 
 func scriptHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +91,7 @@ func addCandidateHandler(w http.ResponseWriter, r *http.Request) {
 
 func getCandidateHandler(w http.ResponseWriter, r *http.Request) {
 
-	clientId, resp, output := wrtc.GetCandidateToPeerConnnection(r.FormValue("uid"))
+	clientId, resp, output := wrtc.GetCandidateToPeerConnection(r.FormValue("uid"))
 	w.Write([]byte(clientId + "\t" + resp + "\t" + output))
 }
 

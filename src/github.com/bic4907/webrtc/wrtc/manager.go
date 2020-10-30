@@ -4,11 +4,10 @@ import (
 	list "container/list"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"io"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 
 	webrtcsignal "github.com/bic4907/webrtc/internal/signal"
 	"github.com/pion/rtcp"
@@ -50,7 +49,7 @@ func AddCandidateToPeerConnnection(uid string, candidate string) (string, string
 	return client.id.String(), webrtcsignal.Encode(client.pc.LocalDescription())
 }
 
-func GetCandidateToPeerConnnection(uid string) (string, string, string) {
+func GetCandidateToPeerConnection(uid string) (string, string, string) {
 	client, _ := clients[uid]
 
 	var output []string = []string{}
