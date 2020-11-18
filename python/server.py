@@ -1,20 +1,23 @@
 from concurrent import futures
 import logging
-
-from protobuf.opencv_pb2_grpc import *
-from protobuf.opencv_pb2 import *
+import grpc
 
 
-class Greeter(GreeterServicer):
+import protobuf.media_pb2 as media_pb
+import protobuf.media_pb2_grpc as media_grpc
 
-    def SayHello(self, request, context):
-        print(request.name)
-        return HelloReply(message='Hello, %s!' % request.name)
+class Service(media_grpc.ServiceServicer):
+
+    def SendMessage(self, request, context):
+        print(request.Content)
+        message = media_pb.RplMessage(Content=request.Content)
+
+        return message
 
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    add_GreeterServicer_to_server(Greeter(), server)
+    media_grpc.add_ServiceServicer_to_server(Service(), server)
     server.add_insecure_port('127.0.0.1:10002')
     server.start()
     print('OPEN')
