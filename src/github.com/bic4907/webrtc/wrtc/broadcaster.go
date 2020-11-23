@@ -62,7 +62,6 @@ func MakeBroadcasterPeerConnection(description webrtc.SessionDescription, broadc
 	var videoCheckerChannel *webrtc.DataChannel = nil
 
 	pc.OnTrack(func(track *webrtc.Track, receiver *webrtc.RTPReceiver) {
-
 		if track.Kind() == webrtc.RTPCodecTypeVideo {
 
 			broadcaster.VideoTrack = track
@@ -123,7 +122,6 @@ func MakeBroadcasterPeerConnection(description webrtc.SessionDescription, broadc
 				chunk := common.BroadcastChunk{BroadcastId: broadcaster.BroadcastId, Chunk: rtp, CodecType: webrtc.RTPCodecTypeVideo}
 				broadcaster.BroadcastChannel <- chunk
 			}
-
 		}
 	})
 

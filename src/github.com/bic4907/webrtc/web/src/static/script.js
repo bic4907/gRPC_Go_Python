@@ -292,14 +292,16 @@ let app = new Vue({
 
                     self.pc.createOffer().then(d => {
 
-                        self.pc.setLocalDescription(d)
+                        self.pc.setLocalDescription(d).then(() => {
+                            this.ws.send(JSON.stringify({
+                                type: 'broadcastRequest',
+                                message: btoa(JSON.stringify(self.pc.localDescription)),
+                                userId: self.userId,
+                                roomId: self.roomId,
+                            }))
 
-                        this.ws.send(JSON.stringify({
-                            type: 'broadcastRequest',
-                            message: btoa(JSON.stringify(self.pc.localDescription)),
-                            userId: self.userId,
-                            roomId: self.roomId,
-                        }))
+                        })
+
 
 
                     })

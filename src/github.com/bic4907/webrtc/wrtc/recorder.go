@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/at-wat/ebml-go/webm"
+	"io"
+	"os"
 	"os/exec"
 	"time"
 
@@ -14,11 +16,15 @@ import (
 
 var (
 	videoPath = "videos/"
+	chunkPath = "chunks/"
 )
 
 type VideoRecorder struct {
-	audioWriter, videoWriter       webm.BlockWriteCloser
-	audioBuilder, videoBuilder     *samplebuilder.SampleBuilder
+	audioWriter, videoWriter   webm.BlockWriteCloser
+	audioBuilder, videoBuilder *samplebuilder.SampleBuilder
+
+	audioChunker, videoChunker webm.BlockWriteCloser
+
 	audioTimestamp, videoTimestamp uint32
 	Broadcaster                    *Broadcaster
 	path                           string
@@ -62,6 +68,9 @@ func (s *VideoRecorder) PushOpus(rtpPacket *rtp.Packet) {
 			if _, err := s.audioWriter.Write(true, int64(t), sample.Data); err != nil {
 				panic(err)
 			}
+			if _, err := s.audioChunker.Write(true, int64(t), sample.Data); err != nil {
+				panic(err)
+			}
 		}
 	}
 }
@@ -82,13 +91,18 @@ func (s *VideoRecorder) PushVP8(rtpPacket *rtp.Packet) {
 			height := int((raw >> 16) & 0x3FFF)
 
 			if s.videoWriter == nil || s.audioWriter == nil {
+				s.InitChunker(width, height)
 				s.InitWriter(width, height)
+
 			}
 		}
 		if s.videoWriter != nil {
 			s.videoTimestamp += sample.Samples
 			t := s.videoTimestamp / 90
 			if _, err := s.videoWriter.Write(videoKeyframe, int64(t), sample.Data); err != nil {
+				panic(err)
+			}
+			if _, err := s.videoChunker.Write(videoKeyframe, int64(t), sample.Data); err != nil {
 				panic(err)
 			}
 		}
@@ -103,22 +117,84 @@ func (s *VideoRecorder) InitWriter(width, height int) {
 	s.path = filepath
 	s.name = filename
 
-	// - re : frame input
-	// - -i (pipe:0) : input as pipeline 0
-	ffmpeg := exec.Command("ffmpeg", "-re", "-i", "pipe:0", "-c:v", "libx264", "-loglevel", "panic", filepath) //nolint
+	ffmpeg := exec.Command("ffmpeg", "-re", "-i", "pipe:0", "-c:v", "libx264", "-loglevel", "panic", filepath)
+
 	ffmpegIn, _ := ffmpeg.StdinPipe()
-	ffmpegOut, _ := ffmpeg.StderrPipe()
+	ffmpegErr, _ := ffmpeg.StderrPipe()
+
 	if err := ffmpeg.Start(); err != nil {
 		panic(err)
 	}
 
 	go func() {
-		scanner := bufio.NewScanner(ffmpegOut)
+		scanner := bufio.NewScanner(ffmpegErr)
+
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
 		}
 	}()
 
+	ws, err := GetVideoBlockWriter(ffmpegIn, width, height)
+	if err != nil {
+		panic(err)
+	}
+
+	log(s.Broadcaster.Uid, fmt.Sprintf("Record starting - video width=%d, height=%d", width, height))
+
+	s.audioWriter = ws[0]
+	s.videoWriter = ws[1]
+}
+
+func (s *VideoRecorder) InitChunker(width, height int) {
+
+	uid := s.Broadcaster.Uid.String()
+	now := time.Now().Format("2006-01-02_15-04-05")
+	filename := uid + ".mp4"
+	filepath := videoPath + now + "_" + filename
+	s.path = filepath
+	s.name = filename
+
+	dirPath := chunkPath + s.Broadcaster.BroadcastId
+
+	// Delete all videos in directory
+	if _, err := os.Stat(chunkPath); os.IsNotExist(err) {
+		os.Mkdir(chunkPath, os.ModePerm)
+	}
+
+	os.RemoveAll(dirPath)
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		os.Mkdir(dirPath, os.ModePerm)
+	}
+
+	ffmpeg := exec.Command("ffmpeg", "-re", "-i", "pipe:0", "-loglevel", "panic", "-c:v", "libx264", "-map", "0", "-segment_time", "1", "-f", "segment", "-reset_timestamps", "1", "-vf", "fps=60", dirPath+"/%d.mp4") //nolint
+
+	ffmpegIn, _ := ffmpeg.StdinPipe()
+	ffmpegErr, _ := ffmpeg.StderrPipe()
+
+	if err := ffmpeg.Start(); err != nil {
+		panic(err)
+	}
+
+	go func() {
+		scanner := bufio.NewScanner(ffmpegErr)
+
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+	}()
+
+	ws, err := GetVideoBlockWriter(ffmpegIn, width, height)
+	if err != nil {
+		panic(err)
+	}
+
+	log(s.Broadcaster.Uid, fmt.Sprintf("Chunker starting - video width=%d, height=%d", width, height))
+
+	s.audioChunker = ws[0]
+	s.videoChunker = ws[1]
+}
+
+func GetVideoBlockWriter(ffmpegIn io.WriteCloser, width, height int) ([]webm.BlockWriteCloser, error) {
 	ws, err := webm.NewSimpleBlockWriter(ffmpegIn,
 		[]webm.TrackEntry{
 			{
@@ -145,12 +221,5 @@ func (s *VideoRecorder) InitWriter(width, height int) {
 				},
 			},
 		})
-	if err != nil {
-		panic(err)
-	}
-
-	log(s.Broadcaster.Uid, fmt.Sprintf("Record starting - video width=%d, height=%d", width, height))
-
-	s.audioWriter = ws[0]
-	s.videoWriter = ws[1]
+	return ws, err
 }

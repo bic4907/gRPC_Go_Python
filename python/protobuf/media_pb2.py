@@ -216,7 +216,7 @@ DESCRIPTOR.message_types_by_name['ReqMessage'] = _REQMESSAGE
 DESCRIPTOR.message_types_by_name['RplMessage'] = _RPLMESSAGE
 DESCRIPTOR.message_types_by_name['VideoChunk'] = _VIDEOCHUNK
 DESCRIPTOR.message_types_by_name['AudioChunk'] = _AUDIOCHUNK
-DESCRIPTOR.message_types_by_name['ReceiveReply'] = _RECEIVEREPLY
+DESCRIPTOR.message_types_by_name['z'] = _RECEIVEREPLY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ReqMessage = _reflection.GeneratedProtocolMessageType('ReqMessage', (_message.Message,), {
