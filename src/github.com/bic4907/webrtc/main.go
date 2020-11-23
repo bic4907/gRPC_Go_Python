@@ -13,7 +13,7 @@ func main() {
 
 	rpcInstance := rpcware.GetRpcInstance()
 	rpcInstance.Connect("localhost:10002")
-	go rpcInstance.Listen()
+	//go rpcInstance.Listen()
 
 	closed := make(chan os.Signal, 1)
 	signal.Notify(closed, os.Interrupt)

@@ -4,10 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bic4907/webrtc/common"
+	"github.com/bic4907/webrtc/protobuf"
+	"github.com/bic4907/webrtc/rpcware"
 	"github.com/google/uuid"
 	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v3"
+	"gopkg.in/djherbis/times.v1"
 	"io"
+	"io/ioutil"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -95,6 +101,9 @@ func MakeBroadcasterPeerConnection(description webrtc.SessionDescription, broadc
 					}
 				}
 			}()
+
+			broadcaster.StartChunkSender()
+
 		} else {
 			broadcaster.AudioTrack = track
 		}
@@ -178,4 +187,46 @@ func MakeBroadcasterPeerConnection(description webrtc.SessionDescription, broadc
 	}
 
 	return pc
+}
+
+func (b *Broadcaster) StartChunkSender() {
+
+	dirPath := chunkPath + b.BroadcastId
+	var current = 0
+
+	chunkSender := rpcware.GetRpcInstance()
+
+	go func() {
+		for {
+
+			curFileName := dirPath + "/" + strconv.Itoa(current) + ".mp4"
+			nextFileName := dirPath + "/" + strconv.Itoa(current+1) + ".mp4"
+
+			if _, err := os.Stat(curFileName); os.IsNotExist(err) {
+				time.Sleep(100)
+				continue
+			}
+			if _, err := os.Stat(nextFileName); os.IsNotExist(err) {
+				time.Sleep(100)
+				continue
+			}
+
+			data, err := ioutil.ReadFile(curFileName)
+			if err == nil {
+
+				tStat, err := times.Stat(curFileName)
+
+				vChunk := &protobuf.VideoChunk{RoomId: b.RoomId, UserId: b.UserId, Chunk: data, CreatedAt: tStat.BirthTime().UnixNano()}
+				chunkSender.SendChunk <- vChunk
+
+				// If file writing is completed
+				err = os.Remove(curFileName)
+				if err != nil {
+				}
+
+				current += 1
+			}
+		}
+	}()
+
 }

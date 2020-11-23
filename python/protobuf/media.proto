@@ -6,7 +6,6 @@ option go_package = "github.com/bic4907/webrtc/protobuf";
 service Service {
   rpc SendMessage (ReqMessage) returns (RplMessage);
   rpc StreamVideo (stream VideoChunk) returns (ReceiveReply);
-  rpc StreamAudio (stream AudioChunk) returns (ReceiveReply);
 }
 
 message ReqMessage {
@@ -17,15 +16,10 @@ message RplMessage {
 }
 
 message VideoChunk {
-  string RoomId = 1;
-  string UserId = 2;
-  bytes Rtp     = 3;
-}
-
-message AudioChunk {
-  string RoomId = 1;
-  string UserId = 2;
-  bytes Rtp     = 3;
+  string  RoomId      = 1;
+  string  UserId      = 2;
+  bytes   Chunk       = 3;
+  int64   CreatedAt   = 4;
 }
 
 message ReceiveReply {

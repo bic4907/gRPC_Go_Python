@@ -2,9 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-
 from . import media_pb2 as media__pb2
-
 
 class ServiceStub(object):
     """Missing associated documentation comment in .proto file."""
@@ -25,11 +23,6 @@ class ServiceStub(object):
                 request_serializer=media__pb2.VideoChunk.SerializeToString,
                 response_deserializer=media__pb2.ReceiveReply.FromString,
                 )
-        self.StreamAudio = channel.stream_unary(
-                '/protobuf.Service/StreamAudio',
-                request_serializer=media__pb2.AudioChunk.SerializeToString,
-                response_deserializer=media__pb2.ReceiveReply.FromString,
-                )
 
 
 class ServiceServicer(object):
@@ -47,12 +40,6 @@ class ServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def StreamAudio(self, request_iterator, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_ServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -64,11 +51,6 @@ def add_ServiceServicer_to_server(servicer, server):
             'StreamVideo': grpc.stream_unary_rpc_method_handler(
                     servicer.StreamVideo,
                     request_deserializer=media__pb2.VideoChunk.FromString,
-                    response_serializer=media__pb2.ReceiveReply.SerializeToString,
-            ),
-            'StreamAudio': grpc.stream_unary_rpc_method_handler(
-                    servicer.StreamAudio,
-                    request_deserializer=media__pb2.AudioChunk.FromString,
                     response_serializer=media__pb2.ReceiveReply.SerializeToString,
             ),
     }
@@ -111,23 +93,6 @@ class Service(object):
             metadata=None):
         return grpc.experimental.stream_unary(request_iterator, target, '/protobuf.Service/StreamVideo',
             media__pb2.VideoChunk.SerializeToString,
-            media__pb2.ReceiveReply.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def StreamAudio(request_iterator,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/protobuf.Service/StreamAudio',
-            media__pb2.AudioChunk.SerializeToString,
             media__pb2.ReceiveReply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

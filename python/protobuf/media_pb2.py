@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'Z\"github.com/bic4907/webrtc/protobuf',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0bmedia.proto\x12\x08protobuf\"\x1d\n\nReqMessage\x12\x0f\n\x07\x43ontent\x18\x01 \x01(\t\"\x1d\n\nRplMessage\x12\x0f\n\x07\x43ontent\x18\x01 \x01(\t\"9\n\nVideoChunk\x12\x0e\n\x06RoomId\x18\x01 \x01(\t\x12\x0e\n\x06UserId\x18\x02 \x01(\t\x12\x0b\n\x03Rtp\x18\x03 \x01(\x0c\"9\n\nAudioChunk\x12\x0e\n\x06RoomId\x18\x01 \x01(\t\x12\x0e\n\x06UserId\x18\x02 \x01(\t\x12\x0b\n\x03Rtp\x18\x03 \x01(\x0c\"\x1e\n\x0cReceiveReply\x12\x0e\n\x06Result\x18\x01 \x01(\t2\xc2\x01\n\x07Service\x12\x39\n\x0bSendMessage\x12\x14.protobuf.ReqMessage\x1a\x14.protobuf.RplMessage\x12=\n\x0bStreamVideo\x12\x14.protobuf.VideoChunk\x1a\x16.protobuf.ReceiveReply(\x01\x12=\n\x0bStreamAudio\x12\x14.protobuf.AudioChunk\x1a\x16.protobuf.ReceiveReply(\x01\x42$Z\"github.com/bic4907/webrtc/protobufb\x06proto3'
+  serialized_pb=b'\n\x0bmedia.proto\x12\x08protobuf\"\x1d\n\nReqMessage\x12\x0f\n\x07\x43ontent\x18\x01 \x01(\t\"\x1d\n\nRplMessage\x12\x0f\n\x07\x43ontent\x18\x01 \x01(\t\"N\n\nVideoChunk\x12\x0e\n\x06RoomId\x18\x01 \x01(\t\x12\x0e\n\x06UserId\x18\x02 \x01(\t\x12\r\n\x05\x43hunk\x18\x03 \x01(\x0c\x12\x11\n\tCreatedAt\x18\x04 \x01(\x03\"\x1e\n\x0cReceiveReply\x12\x0e\n\x06Result\x18\x01 \x01(\t2\x83\x01\n\x07Service\x12\x39\n\x0bSendMessage\x12\x14.protobuf.ReqMessage\x1a\x14.protobuf.RplMessage\x12=\n\x0bStreamVideo\x12\x14.protobuf.VideoChunk\x1a\x16.protobuf.ReceiveReply(\x01\x42$Z\"github.com/bic4907/webrtc/protobufb\x06proto3'
 )
 
 
@@ -112,9 +112,16 @@ _VIDEOCHUNK = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='Rtp', full_name='protobuf.VideoChunk.Rtp', index=2,
+      name='Chunk', full_name='protobuf.VideoChunk.Chunk', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='CreatedAt', full_name='protobuf.VideoChunk.CreatedAt', index=3,
+      number=4, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -131,53 +138,7 @@ _VIDEOCHUNK = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=87,
-  serialized_end=144,
-)
-
-
-_AUDIOCHUNK = _descriptor.Descriptor(
-  name='AudioChunk',
-  full_name='protobuf.AudioChunk',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='RoomId', full_name='protobuf.AudioChunk.RoomId', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='UserId', full_name='protobuf.AudioChunk.UserId', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='Rtp', full_name='protobuf.AudioChunk.Rtp', index=2,
-      number=3, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"",
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=146,
-  serialized_end=203,
+  serialized_end=165,
 )
 
 
@@ -208,15 +169,14 @@ _RECEIVEREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=205,
-  serialized_end=235,
+  serialized_start=167,
+  serialized_end=197,
 )
 
 DESCRIPTOR.message_types_by_name['ReqMessage'] = _REQMESSAGE
 DESCRIPTOR.message_types_by_name['RplMessage'] = _RPLMESSAGE
 DESCRIPTOR.message_types_by_name['VideoChunk'] = _VIDEOCHUNK
-DESCRIPTOR.message_types_by_name['AudioChunk'] = _AUDIOCHUNK
-DESCRIPTOR.message_types_by_name['z'] = _RECEIVEREPLY
+DESCRIPTOR.message_types_by_name['ReceiveReply'] = _RECEIVEREPLY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ReqMessage = _reflection.GeneratedProtocolMessageType('ReqMessage', (_message.Message,), {
@@ -240,13 +200,6 @@ VideoChunk = _reflection.GeneratedProtocolMessageType('VideoChunk', (_message.Me
   })
 _sym_db.RegisterMessage(VideoChunk)
 
-AudioChunk = _reflection.GeneratedProtocolMessageType('AudioChunk', (_message.Message,), {
-  'DESCRIPTOR' : _AUDIOCHUNK,
-  '__module__' : 'media_pb2'
-  # @@protoc_insertion_point(class_scope:protobuf.AudioChunk)
-  })
-_sym_db.RegisterMessage(AudioChunk)
-
 ReceiveReply = _reflection.GeneratedProtocolMessageType('ReceiveReply', (_message.Message,), {
   'DESCRIPTOR' : _RECEIVEREPLY,
   '__module__' : 'media_pb2'
@@ -264,8 +217,8 @@ _SERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=238,
-  serialized_end=432,
+  serialized_start=200,
+  serialized_end=331,
   methods=[
   _descriptor.MethodDescriptor(
     name='SendMessage',
@@ -283,16 +236,6 @@ _SERVICE = _descriptor.ServiceDescriptor(
     index=1,
     containing_service=None,
     input_type=_VIDEOCHUNK,
-    output_type=_RECEIVEREPLY,
-    serialized_options=None,
-    create_key=_descriptor._internal_create_key,
-  ),
-  _descriptor.MethodDescriptor(
-    name='StreamAudio',
-    full_name='protobuf.Service.StreamAudio',
-    index=2,
-    containing_service=None,
-    input_type=_AUDIOCHUNK,
     output_type=_RECEIVEREPLY,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,

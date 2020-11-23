@@ -4,13 +4,15 @@ import (
 	"context"
 	"github.com/bic4907/webrtc/protobuf"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"log"
 )
 
 type RpcClient struct {
-	connection *grpc.ClientConn
-	cci        protobuf.ServiceClient
-	SendChunk  chan []byte
+	connection    *grpc.ClientConn
+	cci           protobuf.ServiceClient
+	SendChunk     chan *protobuf.VideoChunk
+	connectedHost string
 }
 
 var instance *RpcClient
@@ -19,7 +21,7 @@ func GetRpcInstance() *RpcClient {
 	if instance == nil {
 		instance = new(RpcClient)
 
-		instance.SendChunk = make(chan []byte)
+		instance.SendChunk = make(chan *protobuf.VideoChunk)
 
 	}
 	return instance
@@ -31,15 +33,22 @@ func (c *RpcClient) Connect(remoteHost string) {
 		log.Println("Error while connecting gRPC")
 		return
 	} else {
-		log.Println("Successfully connected to gRPC")
 	}
+	c.connectedHost = remoteHost
 	c.connection = conn
 	cci := protobuf.NewServiceClient(conn)
 	c.cci = cci
+
+	go c.Listen()
 }
 
 func (c *RpcClient) Disconnect() {
 	c.connection.Close()
+}
+
+func (c *RpcClient) Reconnect() {
+	c.Disconnect()
+	c.Connect(c.connectedHost)
 }
 
 func (c *RpcClient) Listen() {
@@ -49,19 +58,18 @@ func (c *RpcClient) Listen() {
 	//aStream, _ := protobuf.ServiceClient.StreamAudio(c.cci, context.Background())
 
 	for {
+		if c.connection.GetState() != connectivity.Ready {
+			go c.Reconnect()
+			break
+		}
 		select {
-		case rtp := <-c.SendChunk:
-			//fmt.Println("Stream")
+		case chunk := <-c.SendChunk:
 
-			vChunk := &protobuf.VideoChunk{RoomId: "1", UserId: "1", Rtp: rtp}
-			vStream.Send(vChunk)
-
-			//fmt.Println("Send Packet")
-			//vMessage := &protobuf.ReqMessage{Content: "HI"}
-			//_, _ = c.cci.SendMessage(context.Background(), vMessage)
-
-			//log.Println("Chunk Received")
-			//log.Println(chunk)
+			err := vStream.Send(chunk)
+			if err != nil {
+				log.Println("gRPC connection not established")
+				break
+			}
 		}
 	}
 }

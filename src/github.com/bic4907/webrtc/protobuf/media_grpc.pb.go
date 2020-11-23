@@ -19,7 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 type ServiceClient interface {
 	SendMessage(ctx context.Context, in *ReqMessage, opts ...grpc.CallOption) (*RplMessage, error)
 	StreamVideo(ctx context.Context, opts ...grpc.CallOption) (Service_StreamVideoClient, error)
-	StreamAudio(ctx context.Context, opts ...grpc.CallOption) (Service_StreamAudioClient, error)
 }
 
 type serviceClient struct {
@@ -73,47 +72,12 @@ func (x *serviceStreamVideoClient) CloseAndRecv() (*ReceiveReply, error) {
 	return m, nil
 }
 
-func (c *serviceClient) StreamAudio(ctx context.Context, opts ...grpc.CallOption) (Service_StreamAudioClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Service_serviceDesc.Streams[1], "/protobuf.Service/StreamAudio", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &serviceStreamAudioClient{stream}
-	return x, nil
-}
-
-type Service_StreamAudioClient interface {
-	Send(*AudioChunk) error
-	CloseAndRecv() (*ReceiveReply, error)
-	grpc.ClientStream
-}
-
-type serviceStreamAudioClient struct {
-	grpc.ClientStream
-}
-
-func (x *serviceStreamAudioClient) Send(m *AudioChunk) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *serviceStreamAudioClient) CloseAndRecv() (*ReceiveReply, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(ReceiveReply)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
 	SendMessage(context.Context, *ReqMessage) (*RplMessage, error)
 	StreamVideo(Service_StreamVideoServer) error
-	StreamAudio(Service_StreamAudioServer) error
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -126,9 +90,6 @@ func (UnimplementedServiceServer) SendMessage(context.Context, *ReqMessage) (*Rp
 }
 func (UnimplementedServiceServer) StreamVideo(Service_StreamVideoServer) error {
 	return status.Errorf(codes.Unimplemented, "method StreamVideo not implemented")
-}
-func (UnimplementedServiceServer) StreamAudio(Service_StreamAudioServer) error {
-	return status.Errorf(codes.Unimplemented, "method StreamAudio not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -187,32 +148,6 @@ func (x *serviceStreamVideoServer) Recv() (*VideoChunk, error) {
 	return m, nil
 }
 
-func _Service_StreamAudio_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ServiceServer).StreamAudio(&serviceStreamAudioServer{stream})
-}
-
-type Service_StreamAudioServer interface {
-	SendAndClose(*ReceiveReply) error
-	Recv() (*AudioChunk, error)
-	grpc.ServerStream
-}
-
-type serviceStreamAudioServer struct {
-	grpc.ServerStream
-}
-
-func (x *serviceStreamAudioServer) SendAndClose(m *ReceiveReply) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *serviceStreamAudioServer) Recv() (*AudioChunk, error) {
-	m := new(AudioChunk)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 var _Service_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "protobuf.Service",
 	HandlerType: (*ServiceServer)(nil),
@@ -226,11 +161,6 @@ var _Service_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "StreamVideo",
 			Handler:       _Service_StreamVideo_Handler,
-			ClientStreams: true,
-		},
-		{
-			StreamName:    "StreamAudio",
-			Handler:       _Service_StreamAudio_Handler,
 			ClientStreams: true,
 		},
 	},
