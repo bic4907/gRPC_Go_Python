@@ -7,6 +7,7 @@ import (
 	"github.com/bic4907/webrtc/common"
 	"github.com/bic4907/webrtc/wrtc"
 	"log"
+	"time"
 )
 
 type Hub struct {
@@ -67,6 +68,7 @@ func (h *Hub) Run() {
 			// Already broadcasting
 			broadcaster, exist := h.broadcasters[subscriber.BroadcastId]
 			if exist {
+				fmt.Println("Already connected")
 				AttachBroadcaster(subscriber, broadcaster)
 			}
 
@@ -112,6 +114,7 @@ func (h *Hub) Run() {
 				next = e.Next()
 
 				sub := e.Value.(*wrtc.Subscriber)
+
 				sub.Receiver <- chunk
 			}
 
@@ -126,13 +129,21 @@ func (h *Hub) GetBroadcaster(broadcastId string) *wrtc.Broadcaster {
 }
 
 func AttachBroadcaster(subscriber *wrtc.Subscriber, broadcaster *wrtc.Broadcaster) {
-	audioTrack, _ := subscriber.Pc.NewTrack(broadcaster.AudioTrack.PayloadType(), broadcaster.AudioTrack.SSRC(), "audio", "pion")
-	subscriber.Pc.AddTrack(audioTrack)
-	subscriber.AudioTrack = audioTrack
+	for {
+		if broadcaster.AudioTrack != nil && broadcaster.VideoTrack != nil {
 
-	videoTrack, _ := subscriber.Pc.NewTrack(broadcaster.VideoTrack.PayloadType(), broadcaster.VideoTrack.SSRC(), "video", "pion")
-	subscriber.Pc.AddTrack(videoTrack)
-	subscriber.VideoTrack = videoTrack
+			audioTrack, _ := subscriber.Pc.NewTrack(broadcaster.AudioTrack.PayloadType(), broadcaster.AudioTrack.SSRC(), "audio", "pion")
+			subscriber.Pc.AddTrack(audioTrack)
+			subscriber.AudioTrack = audioTrack
+
+			videoTrack, _ := subscriber.Pc.NewTrack(broadcaster.VideoTrack.PayloadType(), broadcaster.VideoTrack.SSRC(), "video", "pion2")
+			subscriber.Pc.AddTrack(videoTrack)
+			subscriber.VideoTrack = videoTrack
+			break
+		}
+		time.Sleep(200)
+
+	}
 
 	offer, err := subscriber.Pc.CreateOffer(nil)
 	subscriber.Pc.SetLocalDescription(offer)

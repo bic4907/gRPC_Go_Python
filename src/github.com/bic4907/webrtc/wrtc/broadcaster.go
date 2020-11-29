@@ -197,6 +197,10 @@ func (b *Broadcaster) StartChunkSender() {
 	chunkSender := rpcware.GetRpcInstance()
 
 	go func() {
+		defer func() {
+			recover()
+		}()
+
 		for {
 
 			curFileName := dirPath + "/" + strconv.Itoa(current) + ".mp4"

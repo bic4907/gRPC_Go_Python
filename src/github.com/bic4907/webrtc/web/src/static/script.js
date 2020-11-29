@@ -145,6 +145,7 @@ let app = new Vue({
                         self.pc.createAnswer().then(answer => {
                             self.pc.setLocalDescription(answer)
 
+
                             self.ws.send(JSON.stringify({
                                 type: 'remoteAnswer',
                                 message: btoa(JSON.stringify(self.pc.currentLocalDescription)),
@@ -314,31 +315,31 @@ let app = new Vue({
             self.attachPeerConnectionHandler()
             self.initializeHealthCheck()
 
+            self.pc.addTransceiver('audio')
+            self.pc.addTransceiver('video')
+
+
             self.remoteStream = new MediaStream()
             document.getElementById("video").srcObject = self.remoteStream
-
             self.pc.addEventListener('track', function(event) {
+
                 self.status = 'connected'
                 console.log('track', event.track)
+                self.addLog('debug', event.track.kind)
                 self.remoteStream.addTrack(event.track)
 
             });
 
 
             self.pc.createOffer().then(d => {
-
                 self.pc.setLocalDescription(d).then(() => {
-
                     self.ws.send(JSON.stringify({
                         type: 'subscribeRequest',
                         message: btoa(JSON.stringify(self.pc.localDescription)),
                         userId: self.userId,
                         roomId: self.roomId,
                     }))
-
                 })
-
-
             })
         },
         initializeHealthCheck: function() {
@@ -383,6 +384,20 @@ let app = new Vue({
         },
         clearLog: function() {
             this.logs.clear()
+        },
+        refresh: function () {
+            window.location.href = window.location.href + '&isRefreshed=true'
         }
     }
 })
+
+let isRefreshed = $.urlParam('isRefreshed');
+isRefreshed == null ? isRefreshed = false : isRefreshed = true
+
+window.addEventListener('load', function() {
+
+})
+
+function getState() {
+    return app.pc != null && app.pc.connectionState == 'connected'
+}

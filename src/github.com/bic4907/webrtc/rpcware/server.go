@@ -64,9 +64,9 @@ func (c *RpcClient) Listen() {
 		}
 		select {
 		case chunk := <-c.SendChunk:
-
-			err := vStream.Send(chunk)
-			if err != nil {
+			if c.connection.GetState() == connectivity.Ready {
+				vStream.Send(chunk)
+			} else {
 				log.Println("gRPC connection not established")
 				break
 			}

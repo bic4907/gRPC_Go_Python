@@ -2,3 +2,4 @@
 *.webm
 .idea
 /pkg/*
+chunks

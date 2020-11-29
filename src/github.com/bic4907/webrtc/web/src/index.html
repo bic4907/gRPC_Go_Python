@@ -35,7 +35,7 @@
                     <div class="connecting" v-else-if="status == 'connecting'"><div class="pin" style="background:orange"></div>연결중</div>
                     <div class="disconnected" v-else-if="status == 'disconnected'"><div class="pin" style="background:red"></div>연결끊김</div>
                 </div>
-                <div id="latency" v-if="latency != null">({{ latency }})</div>
+                <div id="latency" v-if="latency != null" @click="refresh">({{ latency }})</div>
             </center>
         </div>
         <div id="debug">
@@ -46,6 +46,6 @@
             </div>
         </div>
     </div>
-    <script src="/static/script.js"></script>
+    <script src="/static/script.js?tmp=12443243243"></script>
 </body>
 </html>

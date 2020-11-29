@@ -2,6 +2,7 @@ package wrtc
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/bic4907/webrtc/common"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -53,14 +54,14 @@ func MakeSubscriberPeerConnection(description webrtc.SessionDescription, subscri
 				if subscriber.AudioTrack != nil {
 					err = subscriber.AudioTrack.WriteRTP(chunk.Chunk)
 					if err != nil {
-						//fmt.Println(err)
+						fmt.Println(err)
 					}
 				}
 			} else {
 				if subscriber.VideoTrack != nil {
 					err = subscriber.VideoTrack.WriteRTP(chunk.Chunk)
 					if err != nil {
-						//fmt.Println(err)
+						fmt.Println(err)
 					}
 				}
 			}

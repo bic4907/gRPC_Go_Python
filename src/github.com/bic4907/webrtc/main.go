@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bic4907/webrtc/archive"
 	"github.com/bic4907/webrtc/rpcware"
 	"github.com/bic4907/webrtc/web"
 	"os"
@@ -12,18 +13,17 @@ func main() {
 	go web.StartWebService()
 
 	rpcInstance := rpcware.GetRpcInstance()
-	rpcInstance.Connect("localhost:10002")
-	//go rpcInstance.Listen()
+	rpcInstance.Connect(RpcRemoteHost)
+
+	if AccessKey != "" && AccessSecret != "" && Bucket != "" {
+		fileUploaderInstance := archive.GetBucketInstance()
+		fileUploaderInstance.Connect(Bucket, AccessKey, AccessSecret)
+
+		fileUploaderInstance.CallbackUrl = Video_Register_API
+	}
 
 	closed := make(chan os.Signal, 1)
 	signal.Notify(closed, os.Interrupt)
 	<-closed
 
-	//rpcInstance := rpcware.GetRpcInstance()
-	//rpcInstance.Connect("127.0.0.1:10002")
-	//go rpcInstance.Listen()
-	// if err := peerConnection.Close(); err != nil {
-	//	panic(err)
-	//}
-	// saver.Close()
 }
