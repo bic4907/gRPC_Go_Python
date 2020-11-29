@@ -2,15 +2,14 @@ package wrtc
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/xml"
+	"crypto/tls"
 	"fmt"
 	"github.com/alfg/mp4"
 	"github.com/at-wat/ebml-go/webm"
 	"github.com/bic4907/webrtc/archive"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"time"
@@ -40,11 +39,11 @@ type VideoRecorder struct {
 }
 
 type VideoRegisterBody struct {
-	UserId    string
-	RoomId    string
-	Path      string
-	CreatedAt string
-	Duration  uint32
+	user_id    string
+	room       string
+	path       string
+	started_at string
+	duration   uint32
 }
 
 func newVideoRecorder() *VideoRecorder {
@@ -74,15 +73,6 @@ func (s *VideoRecorder) Close() {
 
 	// Send to Amazon S3 if key exists
 
-	src, _ := os.Open(s.path)
-	defer src.Close()
-	dest, _ := os.Create(s.path + "_tmp")
-	defer dest.Close()
-	_, err := io.Copy(dest, src)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	go func() {
 		uploaderInstance := archive.GetBucketInstance()
 		if uploaderInstance.Uploader != nil {
@@ -105,20 +95,22 @@ func (s *VideoRecorder) Close() {
 					uploaderInstance.Upload(s.path)
 
 					duration := mp4.Moov.Mvhd.Duration
-
-					reqBody := VideoRegisterBody{
-						s.Broadcaster.UserId,
-						s.Broadcaster.RoomId,
-						s.path,
-						s.StartedAt,
-						duration,
-					}
-					pbytes, _ := xml.Marshal(reqBody)
-					reqBuff := bytes.NewBuffer(pbytes)
-
+					durationStr := fmt.Sprint(duration)
 					if uploaderInstance.CallbackUrl != "" {
 						fmt.Println(fmt.Sprintf("Registering video logs to callback (%s)", s.path))
-						resp, err := http.Post(uploaderInstance.CallbackUrl, "text/plain", reqBuff)
+
+						tr := &http.Transport{
+							TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+						}
+
+						client := &http.Client{Transport: tr}
+						resp, err := client.PostForm(uploaderInstance.CallbackUrl, url.Values{
+							"user_id":    {s.Broadcaster.UserId},
+							"room":       {s.Broadcaster.RoomId},
+							"path":       {s.path},
+							"started_at": {s.StartedAt},
+							"duration":   {durationStr},
+						})
 						if err != nil {
 							panic(err)
 						}
@@ -126,8 +118,7 @@ func (s *VideoRecorder) Close() {
 						if resp.StatusCode == 200 {
 							fmt.Println(fmt.Sprintf("Completed registered video to callback (%s)", s.path))
 						} else {
-							respBody, _ := ioutil.ReadAll(resp.Body)
-							fmt.Println(fmt.Sprintf("Error while registering to callback\n%s", respBody))
+							fmt.Println(fmt.Sprintf("Error while registering to callback"))
 						}
 						resp.Body.Close()
 					}
@@ -250,7 +241,7 @@ func (s *VideoRecorder) InitChunker(width, height int) {
 		os.Mkdir(dirPath, os.ModePerm)
 	}
 
-	ffmpeg := exec.Command("ffmpeg", "-re", "-i", "pipe:0", "-loglevel", "panic", "-c:v", "libx264", "-map", "0", "-segment_time", "4", "-f", "segment", "-reset_timestamps", "1", "-vf", "fps=30", dirPath+"/%d.mp4") //nolint
+	ffmpeg := exec.Command("ffmpeg", "-re", "-i", "pipe:0", "-loglevel", "panic", "-c:v", "libx264", "-map", "0", "-segment_time", "4", "-f", "segment", "-reset_timestamps", "1", "-vf", "fps=120", dirPath+"/%d.mp4") //nolint
 
 	ffmpegIn, _ := ffmpeg.StdinPipe()
 	ffmpegErr, _ := ffmpeg.StderrPipe()
@@ -274,7 +265,7 @@ func (s *VideoRecorder) InitChunker(width, height int) {
 
 	log(s.Broadcaster.Uid, fmt.Sprintf("Chunker starting - video width=%d, height=%d", width, height))
 
-	s.StartedAt = now
+	s.StartedAt = time.Now().Format("2006-01-02 15:04:05")
 
 	s.audioChunker = ws[0]
 	s.videoChunker = ws[1]

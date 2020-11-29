@@ -1,0 +1,9 @@
+{
+  "AccessKey": "",
+  "AccessSecret": "",
+  "Bucket": "storage.aisupervisor",
+
+  "RpcRemoteHost": "test.inchang.dev:10002",
+
+  "Video_Register_API": "",
+}

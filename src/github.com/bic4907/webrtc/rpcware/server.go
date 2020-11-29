@@ -58,17 +58,14 @@ func (c *RpcClient) Listen() {
 	//aStream, _ := protobuf.ServiceClient.StreamAudio(c.cci, context.Background())
 
 	for {
-		if c.connection.GetState() != connectivity.Ready {
-			go c.Reconnect()
-			break
-		}
 		select {
 		case chunk := <-c.SendChunk:
 			if c.connection.GetState() == connectivity.Ready {
+				log.Println("gRPC chunk sending...")
 				vStream.Send(chunk)
+				log.Println("gRPC chunk send completed!")
 			} else {
-				log.Println("gRPC connection not established")
-				break
+				log.Println("gRPC connection not established!")
 			}
 		}
 	}

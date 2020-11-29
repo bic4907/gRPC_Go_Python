@@ -210,19 +210,25 @@ func (b *Broadcaster) StartChunkSender() {
 				time.Sleep(100)
 				continue
 			}
+
 			if _, err := os.Stat(nextFileName); os.IsNotExist(err) {
 				time.Sleep(100)
 				continue
 			}
-
 			data, err := ioutil.ReadFile(curFileName)
 			if err == nil {
 
-				tStat, err := times.Stat(curFileName)
+				var ctime int64
+				tStat, _ := times.Stat(curFileName)
+				if tStat.HasBirthTime() == false {
+					ctime = time.Now().UnixNano() - int64(1000000000*4.5)
+				} else {
+					tStat, _ := times.Stat(curFileName)
+					ctime = tStat.BirthTime().UnixNano()
+				}
 
-				vChunk := &protobuf.VideoChunk{RoomId: b.RoomId, UserId: b.UserId, Chunk: data, CreatedAt: tStat.BirthTime().UnixNano()}
+				vChunk := &protobuf.VideoChunk{RoomId: b.RoomId, UserId: b.UserId, Chunk: data, CreatedAt: ctime}
 				chunkSender.SendChunk <- vChunk
-
 				// If file writing is completed
 				err = os.Remove(curFileName)
 				if err != nil {
