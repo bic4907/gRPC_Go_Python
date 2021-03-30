@@ -183,7 +183,7 @@ pycrypto==2.6.1
 pycurl==7.43.0.3
 pyee==7.0.2
 pyflakes==2.1.1
-Pygments==2.6.1
+Pygments==2.7.4
 PyHamcrest==2.0.2
 pylibsrtp==0.6.6
 pylint==2.4.2
