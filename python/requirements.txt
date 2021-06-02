@@ -268,7 +268,7 @@ txaio==20.4.1
 typed-ast==1.4.1
 typing-extensions==3.7.4.2
 unicodecsv==0.14.1
-urllib3==1.25.9
+urllib3==1.26.5
 wcwidth==0.2.5
 webencodings==0.5.1
 Werkzeug==1.0.1
