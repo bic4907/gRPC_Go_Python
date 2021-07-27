@@ -7,13 +7,15 @@ require (
 	github.com/at-wat/ebml-go v0.11.0
 	github.com/aws/aws-sdk-go v1.35.35
 	github.com/golang/protobuf v1.4.2
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.1.5
 	github.com/gorilla/websocket v1.4.2
-	github.com/pion/rtcp v1.2.4
-	github.com/pion/rtp v1.6.1
-	github.com/pion/webrtc/v3 v3.0.0-beta.10
+	github.com/pion/quic v0.1.4 // indirect
+	github.com/pion/rtcp v1.2.6
+	github.com/pion/rtp v1.6.2
+	github.com/pion/srtp v1.5.2 // indirect
+	github.com/pion/webrtc/v2 v2.2.26
+	github.com/pion/webrtc/v3 v3.0.15
 	google.golang.org/grpc v1.32.0
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.0.1 // indirect
 	google.golang.org/protobuf v1.23.0
 	gopkg.in/djherbis/times.v1 v1.2.0
 )
